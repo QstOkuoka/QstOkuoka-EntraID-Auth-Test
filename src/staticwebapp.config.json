@@ -1,0 +1,34 @@
+
+{
+  "routes": [
+    {
+      "route": "/admin.html",
+      "allowedRoles": ["Admin"]
+    },
+    {
+      "route": "/user.html",
+      "allowedRoles": ["User"]
+    },
+
+    {
+      "route": "/",
+      "allowedRoles": ["authenticated"]
+    },
+
+    {
+      "route": "/login",
+      "redirect": "/.auth/login/aad"
+    },
+    {
+      "route": "/logout",
+      "redirect": "/.auth/logout"
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/aad"
+    }
+  }
+}
+
