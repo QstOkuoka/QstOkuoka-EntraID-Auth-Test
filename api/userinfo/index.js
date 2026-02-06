@@ -1,4 +1,5 @@
-// api/userinfo/index.js
+
+// your-repo/api/userinfo/index.js
 module.exports = async function (context, req) {
   const enc = req.headers['x-ms-client-principal'];
   if (!enc) { context.res = { status: 401 }; return; }
