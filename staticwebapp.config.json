@@ -1,11 +1,13 @@
-
 {
   "routes": [
     { "route": "/admin", "allowedRoles": ["Admin"] },
-    { "route": "/*",     "allowedRoles": ["authenticated"] }
+    { "route": "/user",  "allowedRoles": ["authenticated"] },
+    { "route": "/*",     "allowedRoles": ["authenticated"] },
+    { "route": "/login",  "redirect": "/.auth/login/aad" },
+    { "route": "/logout", "redirect": "/.auth/logout" }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": [ "/api/*", "/.auth/*" ]   // ★ APIと認証ルートを除外
+    "exclude": [ "/api/*", "/.auth/*" ]   // ← ★ここが重要
   }
 }
