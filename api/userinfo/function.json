@@ -1,3 +1,4 @@
+
 {
   "bindings": [
     {
@@ -5,13 +6,9 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": [ "get", "post" ],
+      "methods": ["get", "post"],
       "route": "getRolesForUser"
     },
-    {
-      "type": "http",
-      "direction": "out",
-      "name": "res"
-    }
+    { "type": "http", "direction": "out", "name": "res" }
   ]
 }
