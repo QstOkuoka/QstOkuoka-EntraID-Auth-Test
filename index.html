@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><title>トップ</title></head>
+<body>
+  <div id="status">チェック中...</div>
+  <script>
+    (async () => {
+      // 認証されていない場合は SWA のログインへ（401 → 302 リダイレクトはconfigで設定）
+      const r = await fetch('/api/userinfo', { credentials: 'include' });
+      if (!r.ok) { location.href = '/.auth/login/aad'; return; }
+      const me = await r.json();
+
+      // Admin ロールを持つユーザーは /admin へ、それ以外は /user へ
+      const roles = Array.isArray(me.roles) ? me.roles : [];
+      if (roles.includes('Admin')) location.href = '/admin';
+      else location.href = '/user';
+    })();
+  </script>
+</body>
+</html>
