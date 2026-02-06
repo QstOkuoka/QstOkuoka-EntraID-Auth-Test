@@ -1,3 +1,4 @@
+
 {
   "routes": [
     { "route": "/admin", "allowedRoles": ["Admin"] },
@@ -8,6 +9,6 @@
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": [ "/api/*", "/.auth/*" ]   // ← ★ここが重要
+    "exclude": [ "/api/*", "/.auth/*" ]
   }
 }
