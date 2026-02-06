@@ -1,11 +1,11 @@
 {
   "routes": [
     {
-      "route": "/admin/*",
+      "route": "/admin*",
       "allowedRoles": ["Admin"]
     },
     {
-      "route": "/user/*",
+      "route": "/user*",
       "allowedRoles": ["User"]
     },
     {
@@ -33,3 +33,4 @@
   }
 }
 ``
+
