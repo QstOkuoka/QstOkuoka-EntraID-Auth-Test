@@ -2,13 +2,10 @@
 {
   "routes": [
     { "route": "/admin", "allowedRoles": ["Admin"] },
-    { "route": "/user",  "allowedRoles": ["authenticated"] },
     { "route": "/*",     "allowedRoles": ["authenticated"] }
   ],
-  "responseOverrides": {
-    "401": { "statusCode": 302, "redirect": "/.auth/login/aad" }
-  },
-  "navigationFallback": { "rewrite": "/index.html" }
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [ "/api/*", "/.auth/*" ]   // ★ APIと認証ルートを除外
+  }
 }
-
-
