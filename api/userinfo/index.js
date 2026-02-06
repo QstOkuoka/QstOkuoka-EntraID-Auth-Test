@@ -1,9 +1,7 @@
+// api/userinfo/index.js（再掲・最終版）
 module.exports = async function (context, req) {
   const enc = req.headers['x-ms-client-principal'];
-  if (!enc) {
-    context.res = { status: 401 };
-    return;
-  }
+  if (!enc) { context.res = { status: 401 }; return; }
 
   const json = Buffer.from(enc, 'base64').toString('utf8');
   const cp = JSON.parse(json).clientPrincipal || {};
@@ -20,7 +18,7 @@ module.exports = async function (context, req) {
     body: {
       userId: cp.userId,
       userDetails: cp.userDetails,
-      roles: roles
+      roles
     }
   };
 };
