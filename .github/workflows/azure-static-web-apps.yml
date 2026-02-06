@@ -8,29 +8,32 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-
-      # Functions(API) は Node 18 を想定
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      # 1) 取得
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          node-version: '18'
+          submodules: false
 
-      - name: Build API (optional)
-        run: |
-          if [ -f "api/package.json" ]; then
-            cd api && npm ci && cd -
-          fi
+      # （必要なら Node をセットアップ：静的HTMLなら不要）
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
 
-      - name: Build App (static) - skip (pure HTML)
-        run: echo "no build"
+      # 2) ビルド（今回は HTML 直置きなので不要）
 
-      - name: Deploy to Azure Static Web Apps
+      # 3) デプロイ
+      - name: Build and Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GRAY_GLACIER_0495D9700 }}
-          action: "upload"
-          app_location: "src"            # 静的ファイルのルート
-          api_location: "api"            # Functions のルート
-          output_location: ""            # ビルド出力なし
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+
+          # ★最重要：配置パス
+          app_location: "src"     # ← フロントのルート
+          api_location: "api"     # ← Functions のルート（今回のポイント）
+          output_location: ""     # ← ビルドなしなら空
+
+          # 任意：タイムアウト延長など
+          # app_build_timeout_in_minutes: 30
