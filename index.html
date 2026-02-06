@@ -1,29 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>状態チェック</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --ok:#0a7; --warn:#e90; --err:#c00; --muted:#666; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.6; margin: 24px; }
+    h1 { margin: 0 0 8px; font-size: 20px; }
+    .step { margin: 8px 0; padding: 8px 12px; border-left: 4px solid var(--muted); background: #fafafa; }
+    .step.ok    { border-color: var(--ok);    }
+    .step.warn  { border-color: var(--warn);  }
+    .step.err   { border-color: var(--err);   }
+    pre { background: #111; color: #eee; padding: 12px; overflow:auto; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .grid { display: grid; grid-template-columns: 160px 1fr; gap: 4px 12px; }
+    .key { color:#333; }
+    .val { color:#000; font-weight:600; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef; margin-right:6px; }
+  </style>
+</head>
+<body>
+  <h1>サインイン後の状態チェック</h1>
+  <div id="s1" class="step">① 認証済みセッションの確認（/api/userinfo へアクセス）</div>
+  <div id="s2" class="step">② レスポンスの検証</div>
+  <div id="s3" class="step">③ 属性判定と遷移</div>
 
-<script>
-(async () => {
-  const r = await fetch('/api/userinfo', {
-    credentials: 'include',
-    cache: 'no-store'   // ★重要
-  });
+  <div id="result"></div>
+  <div id="debug" class="meta"></div>
 
-  if (r.status === 304) {
-    console.error('304 returned. Cache issue.');
-    location.reload(true);
-    return;
-  }
+  <script>
+    (async () => {
+      const debug = /[?&]debug=1\b/.test(location.search);   // ?debug=1 でデバッグモード
+      const set = (id, cls, text) => {
+        const el = document.getElementById(id);
+        el.className = 'step ' + (cls || '');
+        if (text) el.textContent = text;
+      };
+      const showJSON = (obj, title = 'レスポンス') => {
+        const el = document.getElementById('result');
+        el.innerHTML = `
+          <h2>${title}</h2>
+          <pre><code>${escapeHtml(JSON.stringify(obj, null, 2))}</code></pre>`;
+      };
+      const showMeta = (info) => {
+        const d = document.getElementById('debug');
+        d.innerHTML = `
+          <div class="grid">
+            <div class="key">HTTP Status</div><div class="val">${info.status} ${info.statusText || ''}</div>
+            <div class="key">Content-Type</div><div class="val">${info.contentType || '-'}</div>
+            <div class="key">Redirected</div><div class="val">${info.redirected}</div>
+            <div class="key">URL</div><div class="val">${info.url}</div>
+          </div>`;
+      };
+      const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  if (!r.ok) {
-    location.href = '/.auth/login/aad';
-    return;
-  }
+      try {
+        set('s1', '', '① 認証済みセッションの確認中… /api/userinfo を取得します');
 
-  const me = await r.json();
-  const roles = Array.isArray(me.roles) ? me.roles : [];
+        const r = await fetch('/api/userinfo', {
+          credentials: 'include',            // 認証クッキー送信
+          cache: 'no-store'                  // キャッシュ回避
+        });
 
-  if (roles.includes('Admin')) {
-    location.href = '/admin';
-  } else {
-    location.href = '/user';
-  }
-})();
-</script>
+        const ct = r.headers.get('content-type') || '';
+        showMeta({ status: r.status, statusText: r.statusText, contentType: ct, redirected: r.redirected, url: r.url });
+
+        if (r.status === 304) {
+          set('s1', 'warn', '① API応答：304 Not Modified（キャッシュ）。再リロードで回復します');
+          if (!debug) { location.reload(); return; }
+        }
+
+        if (!r.ok) {
+          // 401/403/500など
+          set('s1', 'err', `① API応答エラー：${r.status} ${r.statusText}`);
+          const txt = await r.text().catch(()=> '');
+          showJSON({ nonJsonBody: txt }, 'エラーレスポンス（テキスト）');
+          return;
+        }
+
+        set('s1', 'ok', '① API応答：200 OK');
+
+        if (!ct.includes('application/json')) {
+          set('s2', 'err', '② Content-Type が JSON ではありません。');
+          const raw = await r.text().catch(()=> '');
+          showJSON({ nonJsonBody: raw }, '非JSONレスポンス');
+          return;
+        }
+
+        const me = await r.json();
+        set('s2', 'ok', '② JSON を正常に取得しました。');
+        showJSON(me, 'ユーザー情報(JSON)');
+
+        // ここから判定ロジック
+        set('s3', '', '③ 属性判定中…');
+
+        const roles = Array.isArray(me.roles) ? me.roles : [];
+        const user = me.userDetails || me.preferred_username || '(名前不明)';
+
+        // 画面上にもわかりやすく
+        const result = document.getElementById('result');
+        const pills = roles.map(r => `<span class="pill">${escapeHtml(r)}</span>`).join('') || '<span class="pill">（ロールなし）</span>';
+        result.insertAdjacentHTML('beforeend', `
+          <h3>概要</h3>
+          <div class="grid">
+            <div class="key">ユーザー</div><div class="val">${escapeHtml(user)}</div>
+            <div class="key">ロール</div><div class="val">${pills}</div>
+          </div>
+        `);
+
+        // 例：Admin があれば /admin、なければ /user に遷移
+        if (!debug) {
+          if (roles.includes('Admin')) {
+            set('s3', 'ok', '③ Admin ロールを検出 → /admin へ遷移します');
+            location.href = '/admin';
+          } else {
+            set('s3', 'ok', '③ Admin なし → /user へ遷移します');
+            location.href = '/user';
+          }
+        } else {
+          set('s3', 'ok', '③ デバッグモードのため自動遷移しません（?debug=1 を外せば遷移します）');
+        }
+
+      } catch (e) {
+        set('s1', 'err', '① 例外が発生しました');
+        showJSON({ error: String(e && e.message || e) }, '例外');
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
