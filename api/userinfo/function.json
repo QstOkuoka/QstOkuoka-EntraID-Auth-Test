@@ -5,8 +5,8 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": [ "get" ],
-      "route": "userinfo"
+      "methods": [ "get", "post" ],
+      "route": "getRolesForUser"
     },
     {
       "type": "http",
