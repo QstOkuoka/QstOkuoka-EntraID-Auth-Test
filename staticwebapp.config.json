@@ -1,17 +1,20 @@
+
 {
   "routes": [
     {
-      "route": "/admin*",
+      "route": "/admin.html",
       "allowedRoles": ["Admin"]
     },
     {
-      "route": "/user*",
+      "route": "/user.html",
       "allowedRoles": ["User"]
     },
+
     {
       "route": "/",
       "allowedRoles": ["authenticated"]
     },
+
     {
       "route": "/login",
       "redirect": "/.auth/login/aad"
@@ -26,11 +29,5 @@
       "statusCode": 302,
       "redirect": "/.auth/login/aad"
     }
-  },
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/api/*", "/.auth/*"]
   }
 }
-``
-
