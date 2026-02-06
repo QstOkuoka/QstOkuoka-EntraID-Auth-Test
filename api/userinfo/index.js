@@ -1,4 +1,4 @@
-// api/userinfo/index.js（再掲・最終版）
+// api/userinfo/index.js
 module.exports = async function (context, req) {
   const enc = req.headers['x-ms-client-principal'];
   if (!enc) { context.res = { status: 401 }; return; }
