@@ -4,8 +4,9 @@
       "azureActiveDirectory": {
         "registration": {
           "openIdIssuer": "https://login.microsoftonline.com/c250b49b-1499-43d9-9492-f177a01b796b/v2.0",
-          "clientIdSettingName": "e8bb4991-d4c0-43ed-b02f-ed45d53d3b25",
-          "clientSecretSettingName": "dxo8Q~zU1XzPnZCoRI7cs_PddgQv9wq6s1Bu~bLG"
+          "clientIdSettingName": "AZURE_CLIENT_ID",
+          "clientSecretSettingName": "AZURE_CLIENT_SECRET"
+
         }
       }
     }
